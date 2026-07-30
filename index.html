@@ -407,6 +407,26 @@
       <input type="text" id="registerFilter" placeholder="Filter by ID, spirit, warehouse…">
       <button class="btn btn-primary" id="addCaskBtn">+ Add Cask</button>
     </div>
+
+    <div style="background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:14px;">
+      <div class="display" style="font-size:0.78rem;color:var(--bottle-deep);margin-bottom:6px;">Share this register with your phones</div>
+      <div style="font-size:0.78rem;color:#5c5546;line-height:1.45;margin-bottom:10px;">
+        Casks are saved on the device that entered them. Keep the master
+        <strong>casks.json</strong> in iCloud Drive: tap <strong>Save master file</strong> on the
+        laptop and save it there. On a phone, tap <strong>Load master file</strong> and pick it
+        from iCloud &mdash; that replaces this device's list with the master, so deletions carry
+        over too. <strong>Merge in a file</strong> instead adds records without removing any.
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-outline btn-sm" id="publishBtn">Save master file</button>
+        <label for="replaceInput" class="btn btn-outline btn-sm" style="cursor:pointer;">Load master file</label>
+        <input type="file" id="replaceInput" accept=".json,application/json" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;">
+        <label for="importInput" class="btn btn-ghost btn-sm" style="cursor:pointer;">Merge in a file</label>
+        <input type="file" id="importInput" accept=".json,application/json" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;">
+      </div>
+      <div id="publishMsg" style="font-size:0.78rem;margin-top:8px;color:var(--bottle-deep);"></div>
+    </div>
+
     <div id="registerList"></div>
   </section>
 
@@ -599,24 +619,62 @@ const store = {
 
 function hasStorage() { return store.available(); }
 
-async function loadCasks() {
-  if (!hasStorage()) {
-    casks = [];
-    statusLine.textContent = 'Running without saved storage \u2014 casks added now last for this session only.';
-    renderRegister();
-    renderLabels();
-    return;
-  }
+// The published register: a casks.json file sitting beside this page. Every device that
+// opens the app reads it, so a register built on the laptop is visible on every phone.
+// Browser storage is per-device and can't cross between them; a shared file can.
+let publishedCount = 0;
+
+async function fetchPublishedCasks() {
+  // Only meaningful when served from a web address. Skip it elsewhere (e.g. an embedded
+  // view or a file:// copy) where the request can only ever fail and add console noise.
+  if (!/^https?:$/.test(window.location.protocol)) return null;
   try {
-    const raw = await store.get(STORAGE_KEY);
-    casks = raw ? JSON.parse(raw) : [];
-    statusLine.textContent = casks.length
-      ? `${casks.length} cask(s) on record — shared with everyone using this app`
-      : 'No casks yet — add your first one below (data is shared with everyone using this app)';
+    const res = await fetch('casks.json?t=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (Array.isArray(data)) return data;
+    if (data && Array.isArray(data.casks)) return data.casks;
+    return null;
   } catch (e) {
-    casks = [];
-    statusLine.textContent = 'No casks yet — add your first one below (data is shared with everyone using this app)';
+    return null; // no published file, or offline - fall back to this device's own store
   }
+}
+
+// Published records are authoritative; anything only on this device is kept alongside.
+function mergeRegisters(published, local) {
+  const byId = new Map();
+  (local || []).forEach(c => { if (c && c.id) byId.set(c.id.toLowerCase(), c); });
+  (published || []).forEach(c => { if (c && c.id) byId.set(c.id.toLowerCase(), c); });
+  return Array.from(byId.values());
+}
+
+async function loadCasks() {
+  let local = [];
+  if (hasStorage()) {
+    try {
+      const raw = await store.get(STORAGE_KEY);
+      local = raw ? JSON.parse(raw) : [];
+    } catch (e) { local = []; }
+  }
+
+  const published = await fetchPublishedCasks();
+  publishedCount = published ? published.length : 0;
+
+  casks = published ? mergeRegisters(published, local) : local;
+
+  const localOnly = casks.length - publishedCount;
+  if (published) {
+    statusLine.textContent = publishedCount + ' cask(s) from the published register'
+      + (localOnly > 0 ? ' + ' + localOnly + ' added on this device' : '')
+      + ' \u2014 visible on every device that opens this address';
+  } else if (!hasStorage()) {
+    statusLine.textContent = 'Running without saved storage \u2014 casks added now last for this session only.';
+  } else {
+    statusLine.textContent = casks.length
+      ? casks.length + ' cask(s) saved on this device only \u2014 use "Publish register" to share them with your phones'
+      : 'No casks yet \u2014 add your first one below.';
+  }
+
   renderRegister();
   renderLabels();
 }
@@ -685,6 +743,89 @@ function renderRegister() {
 }
 
 document.getElementById('registerFilter').addEventListener('input', renderRegister);
+
+// Publish: download the register as casks.json for uploading beside the app.
+document.getElementById('publishBtn').addEventListener('click', () => {
+  const msgEl = document.getElementById('publishMsg');
+  if (casks.length === 0) {
+    msgEl.style.color = '#8a3b25';
+    msgEl.textContent = 'Nothing to publish yet \u2014 add some casks first.';
+    return;
+  }
+  const blob = new Blob([JSON.stringify(casks, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'casks.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  msgEl.style.color = 'var(--bottle-deep)';
+  msgEl.textContent = 'casks.json saved (' + casks.length + ' cask(s)). Put it in your iCloud Drive folder, then use "Load master file" on each phone.';
+});
+
+// Load master: the file becomes this device's register outright, so casks deleted on the
+// master disappear here too. Merge deliberately cannot do that.
+document.getElementById('replaceInput').addEventListener('change', async (e) => {
+  const file = e.target.files && e.target.files[0];
+  const msgEl = document.getElementById('publishMsg');
+  if (!file) return;
+  try {
+    const data = JSON.parse(await file.text());
+    const incoming = Array.isArray(data) ? data : (data && data.casks);
+    if (!Array.isArray(incoming)) throw new Error('unexpected shape');
+    const valid = incoming.filter(c => c && typeof c.id === 'string' && c.id.trim());
+    if (valid.length === 0) throw new Error('no casks found');
+
+    const removed = casks.filter(c => !valid.some(v => v.id.toLowerCase() === c.id.toLowerCase()));
+    if (removed.length > 0 && !confirm(
+        'Loading this master file will remove ' + removed.length +
+        ' cask(s) held only on this device (' +
+        removed.slice(0, 3).map(c => c.id).join(', ') +
+        (removed.length > 3 ? '…' : '') + '). Continue?')) {
+      e.target.value = '';
+      return;
+    }
+
+    casks = valid;
+    publishedCount = 0;
+    await saveCasks();
+    renderRegister();
+    renderLabels();
+    msgEl.style.color = 'var(--bottle-deep)';
+    msgEl.textContent = 'Loaded the master file \u2014 ' + valid.length + ' cask(s) now on this device.';
+  } catch (err) {
+    msgEl.style.color = '#8a3b25';
+    msgEl.textContent = 'That file couldn\u2019t be read as a cask register. Pick a casks.json saved by "Save master file".';
+  }
+  e.target.value = '';
+});
+
+// Merge: read a casks.json on this device (also works with no internet).
+document.getElementById('importInput').addEventListener('change', async (e) => {
+  const file = e.target.files && e.target.files[0];
+  const msgEl = document.getElementById('publishMsg');
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    const incoming = Array.isArray(data) ? data : (data && data.casks);
+    if (!Array.isArray(incoming)) throw new Error('unexpected shape');
+    const valid = incoming.filter(c => c && typeof c.id === 'string' && c.id.trim());
+    if (valid.length === 0) throw new Error('no casks found');
+    casks = mergeRegisters(valid, casks);
+    await saveCasks();
+    renderRegister();
+    renderLabels();
+    msgEl.style.color = 'var(--bottle-deep)';
+    msgEl.textContent = 'Imported ' + valid.length + ' cask(s). The register now holds ' + casks.length + '.';
+  } catch (err) {
+    msgEl.style.color = '#8a3b25';
+    msgEl.textContent = 'That file couldn\u2019t be read as a cask register. Use a casks.json produced by "Publish register".';
+  }
+  e.target.value = '';
+});
 
 // ---------- Add/Edit form ----------
 const overlay = document.getElementById('formOverlay');
@@ -797,8 +938,12 @@ document.getElementById('saveCaskBtn').addEventListener('click', async () => {
   closeForm();
   renderRegister();
   renderLabels();
+  // Say plainly where the data lives: saving is per-device until the register is published.
+  const localOnly = casks.length - publishedCount;
   statusLine.textContent = saved
-    ? casks.length + ' cask(s) on record \u2014 shared with everyone using this app'
+    ? (publishedCount > 0
+        ? publishedCount + ' published + ' + localOnly + ' on this device \u2014 tap "Publish register" to share the new ones'
+        : casks.length + ' cask(s) saved on this device only \u2014 tap "Publish register" to share them with your phones')
     : casks.length + ' cask(s) held for this session \u2014 saving to storage is unavailable here';
 });
 
