@@ -13,5 +13,20 @@
     "supplier": "",
     "status": "Filled - Maturing",
     "notes": ""
+  },
+  {
+    "id": "gq test 18.40",
+    "spiritType": "Single Malt New Make",
+    "sizeL": "",
+    "caskType": "",
+    "fillDate": "",
+    "fillStrength": "",
+    "fillLitres": "",
+    "expectedBottling": "",
+    "warehouse": "",
+    "location": "",
+    "supplier": "",
+    "status": "Filled - Maturing",
+    "notes": ""
   }
 ]
