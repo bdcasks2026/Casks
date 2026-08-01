@@ -1,0 +1,1930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cask Manager">
+<meta name="theme-color" content="#26352c">
+<title>Badachro Cask Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qr-scanner/1.4.2/qr-scanner.umd.min.js"></script>
+<style>
+  :root{
+    --ink:#211a14;
+    --paper:#e9e2d1;
+    --paper-deep:#ddd3ba;
+    --line:#cfc2a2;
+    --rust:#a44a30;
+    --rust-deep:#8a3b25;
+    --brass:#b9893e;
+    --bottle:#33453a;
+    --bottle-deep:#26352c;
+    --card:#f4efe3;
+    --danger:#8a3b25;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  .mono{font-family:'JetBrains Mono',monospace;}
+  .display{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:0.04em;}
+
+  header{
+    background:var(--bottle-deep);
+    color:var(--paper);
+    padding:18px 16px 0 16px;
+    position:sticky;
+    top:0;
+    z-index:20;
+    box-shadow:0 2px 8px rgba(0,0,0,0.25);
+  }
+  header .title-row{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:14px;
+  }
+  header h1{
+    font-family:'Oswald',sans-serif;
+    font-weight:700;
+    font-size:1.35rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    margin:0;
+  }
+  header .stamp-ring{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:34px;height:34px;
+    border-radius:50%;
+    border:2px solid var(--brass);
+    box-shadow: inset 0 0 0 3px var(--bottle-deep), inset 0 0 0 4px var(--brass);
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:0.65rem;
+    color:var(--brass);
+    flex:0 0 auto;
+  }
+  header .sub{
+    font-size:0.75rem;
+    color:#c9c2ab;
+    margin:-8px 0 12px 0;
+  }
+  nav{
+    display:flex;
+    gap:2px;
+  }
+  nav button{
+    flex:1;
+    background:transparent;
+    border:none;
+    border-bottom:3px solid transparent;
+    color:#cfc7ae;
+    font-family:'Oswald',sans-serif;
+    font-size:0.8rem;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    padding:10px 6px;
+    cursor:pointer;
+  }
+  nav button.active{
+    color:#fff;
+    border-bottom:3px solid var(--rust);
+  }
+
+  main{
+    max-width:760px;
+    margin:0 auto;
+    padding:16px;
+    padding-bottom:60px;
+  }
+  .view{display:none;}
+  .view.active{display:block;}
+
+  .toolbar{
+    display:flex;
+    gap:8px;
+    margin-bottom:14px;
+    align-items:center;
+  }
+  .toolbar input[type="text"]{
+    flex:1;
+  }
+  input[type="text"], input[type="number"], input[type="date"], select, textarea{
+    width:100%;
+    padding:11px 12px;
+    font-size:0.95rem;
+    font-family:'Inter',sans-serif;
+    border:1.5px solid var(--line);
+    border-radius:6px;
+    background:var(--card);
+    color:var(--ink);
+  }
+  textarea{resize:vertical;min-height:60px;}
+  label{
+    display:block;
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    color:var(--bottle-deep);
+    font-weight:600;
+    margin:10px 0 4px 0;
+  }
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    padding:11px 16px;
+    border-radius:6px;
+    border:none;
+    font-family:'Oswald',sans-serif;
+    font-size:0.78rem;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .btn-primary{background:var(--rust);color:#fff;}
+  .btn-primary:hover{background:var(--rust-deep);}
+  .btn-outline{background:transparent;color:var(--bottle-deep);border:1.5px solid var(--bottle-deep);}
+  .btn-outline:hover{background:var(--bottle-deep);color:#fff;}
+  .btn-ghost{background:transparent;color:var(--ink);text-decoration:underline;padding:6px 4px;}
+  .btn-danger{background:transparent;color:var(--danger);border:1.5px solid var(--danger);}
+  .btn-danger:hover{background:var(--danger);color:#fff;}
+  .btn-block{width:100%;}
+  .btn-sm{padding:7px 10px;font-size:0.7rem;}
+
+  .empty{
+    text-align:center;
+    padding:50px 20px;
+    color:#7a7160;
+  }
+  .empty .display{font-size:1rem;color:var(--bottle-deep);margin-bottom:6px;}
+
+  /* Register list */
+  .cask-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:12px;
+    margin-bottom:10px;
+  }
+  .badge{
+    flex:0 0 auto;
+    width:52px;height:52px;
+    border-radius:50%;
+    border:2px solid var(--brass);
+    box-shadow: inset 0 0 0 3px var(--paper), inset 0 0 0 4px var(--brass);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:0.6rem;
+    text-align:center;
+    line-height:1.05;
+    color:var(--bottle-deep);
+    background:var(--card);
+  }
+  .cask-row .info{flex:1;min-width:0;}
+  .cask-row .cask-id{
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:0.95rem;
+    color:var(--rust-deep);
+  }
+  .cask-row .meta{
+    font-size:0.8rem;
+    color:#5c5546;
+    margin-top:2px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .status-pill{
+    display:inline-block;
+    font-size:0.65rem;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+    font-weight:600;
+    padding:3px 8px;
+    border-radius:20px;
+    margin-top:4px;
+  }
+  .status-Maturing{background:#33453a22;color:var(--bottle-deep);}
+  .status-Filled{background:#b9893e22;color:#8a6524;}
+  .status-Bottled{background:#a44a3022;color:var(--rust-deep);}
+  .status-Sold{background:#8a3b2522;color:#6b2c1c;}
+  .row-actions{display:flex;flex-direction:column;gap:6px;flex:0 0 auto;}
+
+  /* modal form */
+  .overlay{
+    display:none;
+    position:fixed;inset:0;
+    background:rgba(20,16,10,0.55);
+    z-index:50;
+    align-items:flex-start;
+    justify-content:center;
+    overflow-y:auto;
+    padding:24px 12px;
+  }
+  .overlay.active{display:flex;}
+  .modal{
+    background:var(--paper);
+    border-radius:10px;
+    max-width:520px;
+    width:100%;
+    padding:20px;
+    box-shadow:0 12px 40px rgba(0,0,0,0.35);
+    max-height:calc(100vh - 48px);
+    display:flex;
+    flex-direction:column;
+  }
+  .modal-scroll{
+    overflow-y:auto;
+    flex:1 1 auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  .modal h2{
+    font-family:'Oswald',sans-serif;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    font-size:1.05rem;
+    margin:0 0 4px 0;
+    color:var(--bottle-deep);
+  }
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px;}
+  .modal-actions{
+    display:flex;
+    gap:8px;
+    margin-top:14px;
+    padding-top:14px;
+    border-top:1px solid var(--line);
+    background:var(--paper);
+    flex:0 0 auto;
+  }
+
+  /* Search view */
+  .search-hero{
+    text-align:center;
+    padding:6px 0 16px 0;
+  }
+  .search-hero .display{font-size:0.85rem;color:#6b6350;}
+  .record-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:16px;
+    margin-top:14px;
+  }
+  .record-card .head{
+    display:flex;align-items:center;gap:12px;
+    padding-bottom:10px;
+    border-bottom:1px dashed var(--line);
+    margin-bottom:10px;
+  }
+  .record-table{width:100%;border-collapse:collapse;}
+  .record-table td{
+    padding:7px 4px;
+    font-size:0.88rem;
+    border-bottom:1px solid var(--line);
+    vertical-align:top;
+  }
+  .record-table td.f{
+    font-family:'Oswald',sans-serif;
+    font-size:0.68rem;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    color:var(--bottle-deep);
+    width:42%;
+  }
+  .result-item{
+    padding:12px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:8px;
+    margin-bottom:8px;
+    cursor:pointer;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .result-item:hover{border-color:var(--rust);}
+
+  /* Labels view */
+  .label-card{
+    background:var(--card);
+    border:1.5px dashed var(--brass);
+    border-radius:8px;
+    padding:14px;
+    margin-bottom:12px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+  .label-card .qr-box{flex:0 0 auto;background:#fff;padding:6px;border-radius:4px;}
+  .label-card .label-info{flex:1;min-width:0;}
+  .label-card .label-id{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:1.1rem;color:var(--rust-deep);}
+  .label-card .label-meta{font-size:0.8rem;color:#5c5546;margin-top:2px;}
+  .label-actions{display:flex;flex-direction:column;gap:6px;}
+
+  .scan-panel{
+    margin-bottom:14px;
+  }
+  #scanVideo{
+    width:100%;
+    max-width:340px;
+    display:block;
+    margin:10px auto 0 auto;
+    border-radius:8px;
+    border:2px solid var(--brass);
+    background:#000;
+  }
+  .scan-msg{
+    text-align:center;
+    font-size:0.8rem;
+    color:#6b6350;
+    margin-top:8px;
+  }
+  .scan-msg.error{color:var(--danger);font-weight:600;}
+  #status-line{
+    font-size:0.72rem;
+    color:#6b6350;
+    text-align:center;
+    margin-bottom:10px;
+  }
+
+  @media print{
+    body *{visibility:hidden;}
+    #printArea, #printArea *{visibility:visible;}
+    #printArea{position:absolute;top:0;left:0;width:100%;}
+    .label-card{break-inside:avoid;border:1px solid #999;}
+    .label-actions{display:none !important;}
+  }
+
+  @media (max-width:420px){
+    .grid2{grid-template-columns:1fr;}
+    .cask-row{flex-wrap:wrap;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-row">
+    <span class="stamp-ring">BAD</span>
+    <h1>Badachro Cask Manager</h1>
+  </div>
+  <div class="sub">Register &middot; QR labels &middot; Warehouse lookup — Gairloch, Wester Ross
+    <span style="display:inline-block;margin-left:6px;padding:1px 6px;border-radius:10px;background:#ffffff22;font-family:'JetBrains Mono',monospace;font-size:0.66rem;color:#e8e2d6;">build 11 &middot; 1 Aug</span>
+  </div>
+  <nav>
+    <button class="tab-btn active" data-view="register">Register</button>
+    <button class="tab-btn" data-view="search">Search / Scan</button>
+    <button class="tab-btn" data-view="labels">Labels</button>
+  </nav>
+</header>
+
+<main>
+  <div id="status-line">Loading cask data…</div>
+
+  <!-- REGISTER VIEW -->
+  <section class="view active" id="view-register">
+    <div class="toolbar">
+      <input type="text" id="registerFilter" placeholder="Filter by ID, spirit, warehouse…">
+      <button class="btn btn-primary" id="addCaskBtn">+ Add Cask</button>
+    </div>
+
+    <div style="background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:14px;">
+      <div class="display" style="font-size:0.78rem;color:var(--bottle-deep);margin-bottom:6px;">Share this register with your phones</div>
+      <div style="font-size:0.78rem;color:#5c5546;line-height:1.45;margin-bottom:10px;">
+        Casks live on the device that entered them. The quickest way to move the register
+        to a phone: tap <strong>Copy register</strong> on the laptop, send that text to
+        yourself however you like (Messages, WhatsApp, email), then tap
+        <strong>Paste register</strong> on the phone. No files, no cloud folders, no accounts.
+        <br><br>
+        The file buttons below do the same thing via a <strong>casks.json</strong> file if you
+        prefer that &mdash; <strong>Load master file</strong> replaces the phone's list (so
+        deletions carry over), <strong>Merge in a file</strong> only adds.
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-primary btn-sm" id="copyRegBtn">Copy register</button>
+        <button class="btn btn-primary btn-sm" id="pasteRegBtn">Paste register</button>
+        <button class="btn btn-outline btn-sm" id="publishBtn">Save master file</button>
+        <label for="replaceInput" class="btn btn-outline btn-sm" style="cursor:pointer;">Load master file</label>
+        <input type="file" id="replaceInput" accept=".json,application/json" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;">
+        <label for="importInput" class="btn btn-ghost btn-sm" style="cursor:pointer;">Merge in a file</label>
+        <input type="file" id="importInput" accept=".json,application/json" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;">
+      </div>
+      <div id="publishMsg" style="font-size:0.78rem;margin-top:8px;color:var(--bottle-deep);"></div>
+
+      <details id="fileSyncBox" style="margin-top:12px;border-top:1px solid var(--line);padding-top:10px;">
+        <summary style="cursor:pointer;font-family:'Oswald',sans-serif;font-size:0.76rem;letter-spacing:0.04em;text-transform:uppercase;color:var(--bottle-deep);">
+          Keep a file updated automatically (laptop)
+        </summary>
+        <div style="font-size:0.78rem;color:#5c5546;line-height:1.45;margin:10px 0;">
+          Point this at <strong>casks.json</strong> inside your OneDrive folder. Every cask you
+          add, edit or delete is then written to that file straight away &mdash; no saving,
+          no uploading. OneDrive syncs it, and the phones pick it up from the sharing link.
+          <br><br>
+          You grant the permission once by choosing the file. Chrome or Edge on Windows;
+          Safari doesn't offer this.
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-primary btn-sm" id="chooseFileBtn">Choose master file</button>
+          <button class="btn btn-outline btn-sm" id="reconnectFileBtn" style="display:none;">Reconnect file</button>
+          <button class="btn btn-ghost btn-sm" id="stopFileBtn" style="display:none;">Stop updating</button>
+        </div>
+        <div id="fileSyncMsg" style="font-size:0.78rem;margin-top:10px;line-height:1.45;"></div>
+      </details>
+
+      <details id="linkBox" style="margin-top:12px;border-top:1px solid var(--line);padding-top:10px;">
+        <summary style="cursor:pointer;font-family:'Oswald',sans-serif;font-size:0.76rem;letter-spacing:0.04em;text-transform:uppercase;color:var(--bottle-deep);">
+          Update automatically from a link
+        </summary>
+        <div style="font-size:0.78rem;color:#5c5546;line-height:1.45;margin:10px 0;">
+          Put <strong>casks.json</strong> in OneDrive, share it with
+          <em>Anyone with the link &mdash; can view</em>, and paste that link here. This device
+          then pulls the latest register every time the app opens. Set this on the phones;
+          keep creating casks on the laptop.
+        </div>
+        <label for="regUrlInput">Link to casks.json</label>
+        <input type="text" id="regUrlInput" placeholder="https://1drv.ms/..." autocapitalize="off" spellcheck="false">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+          <button class="btn btn-primary btn-sm" id="regUrlSaveBtn">Save &amp; fetch now</button>
+          <button class="btn btn-outline btn-sm" id="regUrlRefreshBtn">Check for updates</button>
+          <button class="btn btn-ghost btn-sm" id="regUrlClearBtn">Remove link</button>
+        </div>
+        <label style="display:flex;align-items:flex-start;gap:8px;text-transform:none;letter-spacing:0;font-size:0.82rem;font-weight:600;cursor:pointer;margin-top:14px;">
+          <input type="checkbox" id="readOnlyMode" style="width:auto;margin-top:2px;flex:0 0 auto;">
+          <span>Scanner only &mdash; hide adding and editing on this device</span>
+        </label>
+        <div id="regUrlMsg" style="font-size:0.78rem;margin-top:10px;line-height:1.45;"></div>
+      </details>
+
+    </div>
+
+    <div id="registerList"></div>
+  </section>
+
+  <!-- SEARCH VIEW -->
+  <section class="view" id="view-search">
+    <div class="search-hero">
+      <div class="display">Scan a cask's QR code, or type its ID</div>
+    </div>
+    <div class="scan-panel">
+      <button class="btn btn-primary btn-block" id="cameraScanBtn">📷 Scan with Camera</button>
+      <label for="photoInput" class="btn btn-outline btn-block" style="margin-top:8px;cursor:pointer;">🖼 Photo of code</label>
+      <input type="file" id="photoInput" accept="image/*" capture="environment" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;">
+      <div id="scanVideoWrap" style="display:none;">
+        <video id="scanVideo" muted playsinline></video>
+      </div>
+      <div class="scan-msg" id="scanMsg"></div>
+    </div>
+    <input type="text" id="searchBox" placeholder="e.g. BAD-2026-0001" autocomplete="off">
+    <div id="searchResults"></div>
+    <div id="recordDetail"></div>
+  </section>
+
+  <!-- LABELS VIEW -->
+  <section class="view" id="view-labels">
+    <div class="toolbar">
+      <div class="display" style="font-size:0.8rem;color:#6b6350;">One QR label per cask — print onto waterproof stock</div>
+      <button class="btn btn-outline" id="printBtn">Print all</button>
+    </div>
+
+    <div class="card" style="background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:14px;">
+      <label for="baseUrlInput">App web address (optional)</label>
+      <input type="text" id="baseUrlInput" placeholder="https://yourname.github.io/casks/">
+      <div style="font-size:0.78rem;color:#5c5546;margin-top:8px;line-height:1.4;">
+        Leave blank and each QR holds just the cask ID. Enter the address where this app is
+        hosted and each QR becomes a link instead — then your iPhone's own camera opens the
+        cask record directly, with no scanning inside the app at all.
+      </div>
+      <button class="btn btn-outline btn-sm" id="saveBaseUrlBtn" style="margin-top:10px;">Save address &amp; rebuild labels</button>
+      <div id="baseUrlMsg" style="font-size:0.78rem;color:var(--bottle-deep);margin-top:8px;"></div>
+    </div>
+
+    <div id="printArea"></div>
+  </section>
+</main>
+
+<!-- PASTE REGISTER MODAL -->
+<div class="overlay" id="pasteOverlay">
+  <div class="modal">
+    <h2>Paste register</h2>
+    <div style="font-size:0.82rem;color:#5c5546;line-height:1.45;margin-bottom:10px;">
+      Paste the text copied from the master device. This replaces the casks on
+      <em>this</em> device with what you paste.
+    </div>
+    <textarea id="pasteBox" style="min-height:160px;font-family:'JetBrains Mono',monospace;font-size:0.75rem;" placeholder="Paste here…"></textarea>
+    <div id="pasteMsg" style="font-size:0.8rem;margin-top:8px;color:#8a3b25;"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-outline" id="pasteCancelBtn">Cancel</button>
+      <button type="button" class="btn btn-primary btn-block" id="pasteConfirmBtn">Load these casks</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="overlay" id="formOverlay">
+  <div class="modal">
+    <h2 id="formTitle">Add Cask</h2>
+    <div id="caskForm">
+      <input type="hidden" id="f-originalId">
+      <div class="modal-scroll">
+      <label>Cask ID *</label>
+      <input type="text" id="f-id" placeholder="BAD-2026-0002">
+
+      <div class="grid2">
+        <div>
+          <label>Spirit Type</label>
+          <select id="f-spiritType">
+            <option>Single Malt New Make</option>
+            <option>Gin</option>
+            <option>Rum</option>
+            <option>Vodka</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div>
+          <label>Cask Size (L)</label>
+          <input type="number" id="f-sizeL" placeholder="200">
+        </div>
+      </div>
+
+      <label>Cask Type</label>
+      <input type="text" id="f-caskType" placeholder="Ex-Bourbon (Heaven Hill), 200L">
+
+      <div class="grid2">
+        <div>
+          <label>Fill Date</label>
+          <input type="date" id="f-fillDate">
+        </div>
+        <div>
+          <label>Fill Strength (% ABV)</label>
+          <input type="number" step="0.1" id="f-fillStrength" placeholder="63.5">
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div>
+          <label>Fill Litres</label>
+          <input type="number" id="f-fillLitres" placeholder="195">
+        </div>
+        <div>
+          <label>Expected Bottling</label>
+          <input type="date" id="f-expectedBottling">
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div>
+          <label>Warehouse</label>
+          <input type="text" id="f-warehouse" placeholder="Warehouse 1">
+        </div>
+        <div>
+          <label>Rack / Bay</label>
+          <input type="text" id="f-location" placeholder="Rack 3, Bay 2">
+        </div>
+      </div>
+
+      <label>Supplier / Cask Source</label>
+      <input type="text" id="f-supplier" placeholder="Speyside Cooperage">
+
+      <label>Status</label>
+      <select id="f-status">
+        <option>Filled - Maturing</option>
+        <option>Racked</option>
+        <option>Ready for Bottling</option>
+        <option>Bottled</option>
+        <option>Sold</option>
+      </select>
+
+      <label>Notes</label>
+      <textarea id="f-notes" placeholder="Any additional detail…"></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" id="cancelFormBtn">Cancel</button>
+        <button type="button" class="btn btn-primary btn-block" id="saveCaskBtn">Save Cask</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let casks = [];
+const STORAGE_KEY = 'badachro-casks';
+const BASEURL_KEY = 'badachro-baseurl';
+let baseUrl = '';
+
+// A QR code can hold either the bare cask ID, or a link to this app at that cask. With a
+// link, the iPhone's own camera opens the record directly - no in-app scanning needed.
+function qrPayload(caskId) {
+  if (!baseUrl) return caskId;
+  const sep = baseUrl.indexOf('?') === -1 ? '?' : '&';
+  return baseUrl + sep + 'id=' + encodeURIComponent(caskId);
+}
+
+const statusLine = document.getElementById('status-line');
+
+function hostStorage() {
+  return (typeof window.storage !== 'undefined' && window.storage
+    && typeof window.storage.get === 'function') ? window.storage : null;
+}
+
+function localStorageWorks() {
+  try {
+    const k = '__badachro_probe__';
+    window.localStorage.setItem(k, '1');
+    window.localStorage.removeItem(k);
+    return true;
+  } catch (e) { return false; }
+}
+
+// One interface over both: the embedded host's storage, or the browser's own store when
+// the app is hosted at its own address. Either way casks survive a reload.
+const store = {
+  async get(key) {
+    const hs = hostStorage();
+    if (hs) {
+      try {
+        const r = await hs.get(key, true);
+        if (r && typeof r.value !== 'undefined') return r.value;
+      } catch (e) { /* fall through */ }
+    }
+    if (localStorageWorks()) return window.localStorage.getItem(key);
+    return null;
+  },
+  async set(key, value) {
+    let ok = false;
+    const hs = hostStorage();
+    if (hs) {
+      try { await hs.set(key, value, true); ok = true; } catch (e) {}
+    }
+    if (localStorageWorks()) {
+      try { window.localStorage.setItem(key, value); ok = true; } catch (e) {}
+    }
+    return ok;
+  },
+  available() { return !!hostStorage() || localStorageWorks(); }
+};
+
+function hasStorage() { return store.available(); }
+
+// The published register: a casks.json file sitting beside this page. Every device that
+// opens the app reads it, so a register built on the laptop is visible on every phone.
+// Browser storage is per-device and can't cross between them; a shared file can.
+let publishedCount = 0;
+
+const REGURL_KEY = 'badachro-regurl';
+const CACHE_KEY = 'badachro-cache';
+let registerUrl = '';
+let lastSync = '';
+
+// A OneDrive share link points at a viewer page, not the file. This rewrites it to the
+// public content endpoint, which returns the raw file.
+function toDirectUrl(link) {
+  const url = (link || '').trim();
+  if (!url) return '';
+
+  // OneDrive personal / business share links
+  if (/1drv\.ms|onedrive\.live\.com|sharepoint\.com/i.test(url)) {
+    try {
+      // Base64url-encode the whole share link, as the shares API expects.
+      const b64 = btoa(unescape(encodeURIComponent(url)))
+        .replace(/=+$/, '').replace(/\//g, '_').replace(/\+/g, '-');
+      return 'https://api.onedrive.com/v1.0/shares/u!' + b64 + '/root/content';
+    } catch (e) { return url; }
+  }
+
+  // GitHub blob page -> raw file
+  if (/github\.com\/.+\/blob\//.test(url)) {
+    return url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
+  }
+
+  return url;
+}
+
+function parseRegister(data) {
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray(data.casks)) return data.casks;
+  return null;
+}
+
+// Returns { casks, error } so callers can explain a failure rather than fail silently.
+async function fetchFromUrl(link) {
+  const direct = toDirectUrl(link);
+  if (!direct) return { casks: null, error: null };
+  try {
+    const sep = direct.indexOf('?') === -1 ? '?' : '&';
+    const res = await fetch(direct + sep + 't=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) {
+      return { casks: null, error: 'The link returned an error (' + res.status +
+        '). Check the file is shared with "Anyone with the link".' };
+    }
+    const parsed = parseRegister(await res.json());
+    if (!parsed) return { casks: null, error: 'That file didn\u2019t contain a cask register.' };
+    return { casks: parsed, error: null };
+  } catch (e) {
+    // A cross-origin block and being offline both land here.
+    return { casks: null, error: 'Couldn\u2019t read the file from that link. If you\u2019re online, ' +
+      'the storage service is likely refusing direct access from a web page \u2014 see the notes below.' };
+  }
+}
+
+async function fetchPublishedCasks() {
+  // 1. A configured link (OneDrive etc.) takes priority - that's the master.
+  if (registerUrl) {
+    const { casks: fetched } = await fetchFromUrl(registerUrl);
+    if (fetched) {
+      lastSync = new Date().toLocaleString();
+      try { await store.set(CACHE_KEY, JSON.stringify({ casks: fetched, at: lastSync })); } catch (e) {}
+      return fetched;
+    }
+    // Offline or blocked: fall back to the last copy we successfully fetched.
+    try {
+      const raw = await store.get(CACHE_KEY);
+      if (raw) {
+        const cached = JSON.parse(raw);
+        if (cached && Array.isArray(cached.casks)) {
+          lastSync = (cached.at || '') + ' (offline copy)';
+          return cached.casks;
+        }
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  // 2. Otherwise, a casks.json sitting beside this page.
+  if (!/^https?:$/.test(window.location.protocol)) return null;
+  try {
+    const res = await fetch('casks.json?t=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) return null;
+    return parseRegister(await res.json());
+  } catch (e) {
+    return null;
+  }
+}
+
+// Published records are authoritative; anything only on this device is kept alongside.
+// Which records this device has changed itself. Without this, the published file would
+// overwrite your own edits on every load, and deleting a published cask would undo itself.
+const EDITS_KEY = 'badachro-edits';
+const DELETES_KEY = 'badachro-deletes';
+let localEdits = new Set();
+let localDeletes = new Set();
+
+async function loadEditMarkers() {
+  try {
+    const e = await store.get(EDITS_KEY);
+    localEdits = new Set(e ? JSON.parse(e) : []);
+  } catch (err) { localEdits = new Set(); }
+  try {
+    const d = await store.get(DELETES_KEY);
+    localDeletes = new Set(d ? JSON.parse(d) : []);
+  } catch (err) { localDeletes = new Set(); }
+}
+
+async function saveEditMarkers() {
+  try { await store.set(EDITS_KEY, JSON.stringify(Array.from(localEdits))); } catch (e) {}
+  try { await store.set(DELETES_KEY, JSON.stringify(Array.from(localDeletes))); } catch (e) {}
+}
+
+function markEdited(id) {
+  if (!id) return;
+  const key = id.toLowerCase();
+  localEdits.add(key);
+  localDeletes.delete(key);
+  saveEditMarkers();
+}
+
+function markDeleted(id) {
+  if (!id) return;
+  const key = id.toLowerCase();
+  localDeletes.add(key);
+  localEdits.delete(key);
+  saveEditMarkers();
+}
+
+// Called when the master is loaded wholesale (Load master file / Paste register): the
+// incoming list is authoritative, so this device's pending markers are cleared.
+async function clearEditMarkers() {
+  localEdits = new Set();
+  localDeletes = new Set();
+  await saveEditMarkers();
+}
+
+// Compare by content, not by key order: two records written by different code paths hold
+// the same fields in a different order, and a raw JSON compare would never match.
+function normalise(rec) {
+  if (!rec) return '';
+  return Object.keys(rec).sort()
+    .filter(k => rec[k] !== '' && rec[k] !== null && rec[k] !== undefined)
+    .map(k => k + '=' + String(rec[k]))
+    .join('|');
+}
+
+function sameRecord(a, b) {
+  try { return normalise(a) === normalise(b); } catch (e) { return false; }
+}
+
+function mergeRegisters(published, local) {
+  const byId = new Map();
+  const pubById = new Map();
+
+  (published || []).forEach(c => {
+    if (c && c.id) {
+      const k = c.id.toLowerCase();
+      byId.set(k, c);
+      pubById.set(k, c);
+    }
+  });
+
+  (local || []).forEach(c => {
+    if (!c || !c.id) return;
+    const k = c.id.toLowerCase();
+    // Keep this device's version if it's new here, or if it was changed here.
+    if (!byId.has(k) || localEdits.has(k)) byId.set(k, c);
+  });
+
+  // A cask deleted on this device stays deleted until the published file catches up.
+  localDeletes.forEach(k => byId.delete(k));
+
+  // Self-cleaning: once the published file matches what we changed, drop the marker so
+  // future updates from the master flow through normally.
+  Array.from(localEdits).forEach(k => {
+    const pub = pubById.get(k);
+    const mine = byId.get(k);
+    if (pub && mine && sameRecord(pub, mine)) localEdits.delete(k);
+  });
+  Array.from(localDeletes).forEach(k => {
+    if (published && !pubById.has(k)) localDeletes.delete(k);
+  });
+  saveEditMarkers();
+
+  return Array.from(byId.values());
+}
+
+async function loadCasks() {
+  await loadEditMarkers();
+  let local = [];
+  if (hasStorage()) {
+    try {
+      const raw = await store.get(STORAGE_KEY);
+      local = raw ? JSON.parse(raw) : [];
+    } catch (e) { local = []; }
+  }
+
+  const published = await fetchPublishedCasks();
+  publishedCount = published ? published.length : 0;
+
+  casks = published ? mergeRegisters(published, local) : local;
+
+  const localOnly = casks.length - publishedCount;
+  if (published) {
+    statusLine.textContent = publishedCount + ' cask(s) from the published register'
+      + (localOnly > 0 ? ' + ' + localOnly + ' added on this device' : '')
+      + ' \u2014 visible on every device that opens this address';
+  } else if (!hasStorage()) {
+    statusLine.textContent = 'Running without saved storage \u2014 casks added now last for this session only.';
+  } else {
+    statusLine.textContent = casks.length
+      ? casks.length + ' cask(s) saved on this device only \u2014 use "Publish register" to share them with your phones'
+      : 'No casks yet \u2014 add your first one below.';
+  }
+
+  renderRegister();
+  renderLabels();
+}
+
+async function saveCasks() {
+  if (!hasStorage()) return false;
+  try {
+    const ok = await store.set(STORAGE_KEY, JSON.stringify(casks));
+    autoWriteMasterFile();      // keep the OneDrive copy in step, if it's linked
+    return ok;
+  } catch (e) {
+    return false;
+  }
+}
+
+// ---------- Write straight into the master file on this computer ----------
+// Chrome and Edge can hold a permission to one chosen file. Point it at casks.json inside
+// your OneDrive folder and every change is written there automatically; OneDrive syncs it
+// and the phones pick it up. No tokens, no uploads - one permission granted once.
+const IDB_NAME = 'badachro-fs';
+let masterHandle = null;
+
+function fileWritingSupported() {
+  return typeof window.showSaveFilePicker === 'function';
+}
+
+function idb() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = () => req.result.createObjectStore('handles');
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function idbPut(key, val) {
+  const db = await idb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('handles', 'readwrite');
+    tx.objectStore('handles').put(val, key);
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function idbGet(key) {
+  const db = await idb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('handles', 'readonly');
+    const r = tx.objectStore('handles').get(key);
+    r.onsuccess = () => resolve(r.result || null);
+    r.onerror = () => reject(r.error);
+  });
+}
+
+async function idbDel(key) {
+  const db = await idb();
+  return new Promise((resolve) => {
+    const tx = db.transaction('handles', 'readwrite');
+    tx.objectStore('handles').delete(key);
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => resolve(false);
+  });
+}
+
+function fileMsg(text, kind) {
+  const el = document.getElementById('fileSyncMsg');
+  if (!el) return;
+  el.textContent = text || '';
+  el.style.color = kind === 'error' ? '#8a3b25' : kind === 'ok' ? '#2f5233' : '#5c5546';
+}
+
+async function writeMasterFile() {
+  if (!masterHandle) return false;
+  const perm = await masterHandle.queryPermission({ mode: 'readwrite' });
+  if (perm !== 'granted') {
+    const asked = await masterHandle.requestPermission({ mode: 'readwrite' });
+    if (asked !== 'granted') return false;
+  }
+  const writable = await masterHandle.createWritable();
+  await writable.write(JSON.stringify(casks, null, 2));
+  await writable.close();
+  return true;
+}
+
+let writeTimer = null;
+function autoWriteMasterFile() {
+  if (!masterHandle) return;
+  if (writeTimer) clearTimeout(writeTimer);
+  writeTimer = setTimeout(async () => {
+    try {
+      const ok = await writeMasterFile();
+      fileMsg(ok
+        ? 'Master file updated ' + new Date().toLocaleTimeString() +
+          ' (' + casks.length + ' casks). OneDrive will sync it.'
+        : 'Permission to write the file was refused \u2014 tap "Reconnect file".', ok ? 'ok' : 'error');
+    } catch (err) {
+      fileMsg('Couldn\u2019t write the master file: ' + (err.message || err), 'error');
+    }
+  }, 800);
+}
+
+// ---------- Tabs ----------
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('view-' + btn.dataset.view).classList.add('active');
+    if (btn.dataset.view === 'search') {
+      document.getElementById('searchBox').value = '';
+      document.getElementById('searchResults').innerHTML = '';
+      document.getElementById('recordDetail').innerHTML = '';
+      // Open the camera straight away so a scan needs no extra tap.
+      if (typeof startScanner === 'function' && !pendingDeepLinkId()) startScanner();
+    } else if (typeof stopScanner === 'function') {
+      stopScanner();
+    }
+    if (btn.dataset.view === 'labels') renderLabels();
+  });
+});
+
+// ---------- Register ----------
+function renderRegister() {
+  const list = document.getElementById('registerList');
+  const filter = (document.getElementById('registerFilter').value || '').toLowerCase();
+  const filtered = casks.filter(c =>
+    !filter || Object.values(c).some(v => String(v || '').toLowerCase().includes(filter))
+  );
+
+  if (casks.length === 0) {
+    list.innerHTML = `<div class="empty"><div class="display">No casks yet</div>Add your first cask to start generating QR labels.</div>`;
+    return;
+  }
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="empty">No casks match "${escapeHtml(filter)}"</div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(c => `
+    <div class="cask-row">
+      <div class="badge">${escapeHtml((c.id || '').slice(-6))}</div>
+      <div class="info">
+        <div class="cask-id">${escapeHtml(c.id)}</div>
+        <div class="meta">${escapeHtml(c.spiritType || '')} — ${escapeHtml(c.caskType || '')}</div>
+        <div class="meta">${escapeHtml(c.warehouse || '')} ${c.location ? '· ' + escapeHtml(c.location) : ''}</div>
+        <span class="status-pill status-${(c.status||'').replace(/[^A-Za-z]/g,'').replace('FilledMaturing','Filled').replace('ReadyforBottling','Filled') || 'Filled'}">${escapeHtml(c.status || 'Filled')}</span>
+      </div>
+      <div class="row-actions">
+        <button class="btn btn-outline btn-sm" onclick="editCask('${escapeAttr(c.id)}')">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteCask('${escapeAttr(c.id)}')">Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+document.getElementById('registerFilter').addEventListener('input', () => {
+  renderRegister();
+  if (typeof applyReadOnly === 'function') applyReadOnly();
+});
+
+// ---------- Master file wiring ----------
+function showFileButtons(linked) {
+  const choose = document.getElementById('chooseFileBtn');
+  const stop = document.getElementById('stopFileBtn');
+  if (choose) choose.style.display = linked ? 'none' : '';
+  if (stop) stop.style.display = linked ? '' : 'none';
+}
+
+async function restoreMasterHandle() {
+  const box = document.getElementById('fileSyncBox');
+  if (!fileWritingSupported()) {
+    if (box) box.style.display = 'none';
+    return;
+  }
+  try {
+    const handle = await idbGet('master');
+    if (!handle) { showFileButtons(false); return; }
+    masterHandle = handle;
+    const perm = await handle.queryPermission({ mode: 'readwrite' });
+    showFileButtons(true);
+    if (perm === 'granted') {
+      fileMsg('Linked to ' + (handle.name || 'casks.json') + '. Changes are written automatically.', 'ok');
+    } else {
+      // Browsers drop the permission between sessions; one click restores it.
+      document.getElementById('reconnectFileBtn').style.display = '';
+      fileMsg('Linked to ' + (handle.name || 'casks.json') +
+        ', but the browser needs permission again this session \u2014 tap "Reconnect file".', 'info');
+    }
+  } catch (e) {
+    showFileButtons(false);
+  }
+}
+
+document.getElementById('chooseFileBtn').addEventListener('click', async () => {
+  if (!fileWritingSupported()) {
+    fileMsg('This browser can\u2019t write files directly. Use Chrome or Edge on the laptop.', 'error');
+    return;
+  }
+  try {
+    const handle = await window.showSaveFilePicker({
+      suggestedName: 'casks.json',
+      types: [{ description: 'Cask register', accept: { 'application/json': ['.json'] } }]
+    });
+    masterHandle = handle;
+    await idbPut('master', handle);
+    showFileButtons(true);
+    document.getElementById('reconnectFileBtn').style.display = 'none';
+    const ok = await writeMasterFile();
+    fileMsg(ok
+      ? 'Linked to ' + handle.name + ' and written (' + casks.length +
+        ' casks). Every change from now on updates it automatically.'
+      : 'Chosen, but writing was refused. Try again and allow the permission.', ok ? 'ok' : 'error');
+  } catch (err) {
+    if (err && err.name === 'AbortError') return;   // user cancelled the picker
+    fileMsg('Couldn\u2019t link that file: ' + (err.message || err), 'error');
+  }
+});
+
+document.getElementById('reconnectFileBtn').addEventListener('click', async () => {
+  if (!masterHandle) return;
+  try {
+    const granted = await masterHandle.requestPermission({ mode: 'readwrite' });
+    if (granted === 'granted') {
+      document.getElementById('reconnectFileBtn').style.display = 'none';
+      const ok = await writeMasterFile();
+      fileMsg(ok ? 'Reconnected and up to date.' : 'Reconnected, but the write failed.', ok ? 'ok' : 'error');
+    } else {
+      fileMsg('Permission refused \u2014 the file won\u2019t update until you allow it.', 'error');
+    }
+  } catch (e) {
+    fileMsg('Couldn\u2019t reconnect: ' + (e.message || e), 'error');
+  }
+});
+
+document.getElementById('stopFileBtn').addEventListener('click', async () => {
+  masterHandle = null;
+  await idbDel('master');
+  showFileButtons(false);
+  document.getElementById('reconnectFileBtn').style.display = 'none';
+  fileMsg('Stopped. The file will no longer be updated automatically.', 'info');
+});
+
+// ---------- Automatic updates from a shared link ----------
+const RO_KEY = 'badachro-readonly';
+let readOnly = false;
+
+function regMsg(text, kind) {
+  const el = document.getElementById('regUrlMsg');
+  if (!el) return;
+  el.textContent = text || '';
+  el.style.color = kind === 'error' ? '#8a3b25' : kind === 'ok' ? '#2f5233' : '#5c5546';
+}
+
+function applyReadOnly() {
+  const addBtn = document.getElementById('addCaskBtn');
+  if (addBtn) addBtn.style.display = readOnly ? 'none' : '';
+  document.querySelectorAll('.cask-row .row-actions').forEach(el => {
+    el.style.display = readOnly ? 'none' : '';
+  });
+  const copyBtn = document.getElementById('copyRegBtn');
+  const pubBtn = document.getElementById('publishBtn');
+  if (copyBtn) copyBtn.style.display = readOnly ? 'none' : '';
+  if (pubBtn) pubBtn.style.display = readOnly ? 'none' : '';
+}
+
+async function refreshFromLink(announce) {
+  if (!registerUrl) { regMsg('No link saved yet.', 'error'); return; }
+  regMsg('Checking\u2026', 'info');
+  const { casks: fetched, error } = await fetchFromUrl(registerUrl);
+  if (fetched) {
+    await clearEditMarkers();
+    casks = fetched;
+    publishedCount = fetched.length;
+    lastSync = new Date().toLocaleString();
+    try { await store.set(CACHE_KEY, JSON.stringify({ casks: fetched, at: lastSync })); } catch (e) {}
+    renderRegister();
+    renderLabels();
+    applyReadOnly();
+    statusLine.textContent = fetched.length + ' cask(s) \u2014 updated ' + lastSync;
+    if (announce !== false) regMsg('Up to date: ' + fetched.length + ' cask(s) as of ' + lastSync + '.', 'ok');
+  } else {
+    regMsg(error || 'Couldn\u2019t fetch the register.', 'error');
+  }
+}
+
+document.getElementById('regUrlSaveBtn').addEventListener('click', async () => {
+  const val = document.getElementById('regUrlInput').value.trim();
+  if (!val) { regMsg('Paste the sharing link first.', 'error'); return; }
+  if (!/^https?:\/\//i.test(val)) { regMsg('The link should start with https://', 'error'); return; }
+  registerUrl = val;
+  try { await store.set(REGURL_KEY, registerUrl); } catch (e) {}
+  await refreshFromLink(true);
+});
+
+document.getElementById('regUrlRefreshBtn').addEventListener('click', () => refreshFromLink(true));
+
+document.getElementById('regUrlClearBtn').addEventListener('click', async () => {
+  registerUrl = '';
+  try { await store.set(REGURL_KEY, ''); } catch (e) {}
+  document.getElementById('regUrlInput').value = '';
+  regMsg('Link removed. This device no longer updates automatically.', 'info');
+});
+
+document.getElementById('readOnlyMode').addEventListener('change', async (e) => {
+  readOnly = e.target.checked;
+  try { await store.set(RO_KEY, readOnly ? '1' : ''); } catch (e2) {}
+  applyReadOnly();
+  regMsg(readOnly
+    ? 'This device is now scanner-only \u2014 casks can be looked up but not changed.'
+    : 'Adding and editing are available again on this device.', 'info');
+});
+
+// ---------- Move the register between devices as text ----------
+// No files, no cloud account, no credentials: copy on one device, paste on another.
+document.getElementById('copyRegBtn').addEventListener('click', async () => {
+  const msgEl = document.getElementById('publishMsg');
+  if (casks.length === 0) {
+    msgEl.style.color = '#8a3b25';
+    msgEl.textContent = 'Nothing to copy yet \u2014 add some casks first.';
+    return;
+  }
+  const text = JSON.stringify(casks);
+  let copied = false;
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+      copied = true;
+    }
+  } catch (e) { copied = false; }
+
+  if (!copied) {
+    // Fallback for browsers that refuse clipboard access: show it for manual selection.
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;top:10%;left:5%;width:90%;height:40%;z-index:999;font-size:0.7rem;';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    try { copied = document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+
+  msgEl.style.color = copied ? 'var(--bottle-deep)' : '#8a3b25';
+  msgEl.textContent = copied
+    ? 'Register copied (' + casks.length + ' cask(s)). Send it to your phone, then tap "Paste register" there.'
+    : 'Couldn\u2019t reach the clipboard. Use "Save master file" instead.';
+});
+
+const pasteOverlay = document.getElementById('pasteOverlay');
+
+document.getElementById('pasteRegBtn').addEventListener('click', () => {
+  document.getElementById('pasteBox').value = '';
+  document.getElementById('pasteMsg').textContent = '';
+  pasteOverlay.classList.add('active');
+  document.getElementById('pasteBox').focus();
+});
+
+document.getElementById('pasteCancelBtn').addEventListener('click', () => {
+  pasteOverlay.classList.remove('active');
+});
+
+document.getElementById('pasteConfirmBtn').addEventListener('click', async () => {
+  const raw = document.getElementById('pasteBox').value.trim();
+  const msgEl = document.getElementById('pasteMsg');
+  if (!raw) { msgEl.textContent = 'Paste the copied text first.'; return; }
+
+  let incoming;
+  try {
+    const data = JSON.parse(raw);
+    incoming = Array.isArray(data) ? data : (data && data.casks);
+    if (!Array.isArray(incoming)) throw new Error('shape');
+  } catch (e) {
+    msgEl.textContent = 'That doesn\u2019t look like a copied register. Copy it again on the other device, making sure you select all of it.';
+    return;
+  }
+
+  const valid = incoming.filter(c => c && typeof c.id === 'string' && c.id.trim());
+  if (valid.length === 0) {
+    msgEl.textContent = 'No casks found in that text.';
+    return;
+  }
+
+  const removed = casks.filter(c => !valid.some(v => v.id.toLowerCase() === c.id.toLowerCase()));
+  if (removed.length > 0 && !confirm(
+      'This will remove ' + removed.length + ' cask(s) held only on this device (' +
+      removed.slice(0, 3).map(c => c.id).join(', ') +
+      (removed.length > 3 ? '\u2026' : '') + '). Continue?')) {
+    return;
+  }
+
+  casks = valid;
+  publishedCount = 0;
+  await clearEditMarkers();
+  await saveCasks();
+  renderRegister();
+  renderLabels();
+  pasteOverlay.classList.remove('active');
+  const pm = document.getElementById('publishMsg');
+  pm.style.color = 'var(--bottle-deep)';
+  pm.textContent = 'Loaded ' + valid.length + ' cask(s) onto this device.';
+});
+
+// Publish: download the register as casks.json for uploading beside the app.
+document.getElementById('publishBtn').addEventListener('click', () => {
+  const msgEl = document.getElementById('publishMsg');
+  if (casks.length === 0) {
+    msgEl.style.color = '#8a3b25';
+    msgEl.textContent = 'Nothing to publish yet \u2014 add some casks first.';
+    return;
+  }
+  const blob = new Blob([JSON.stringify(casks, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const d = new Date();
+  const stamp = d.getFullYear() + '-' +
+    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getDate()).padStart(2, '0') + '-' +
+    String(d.getHours()).padStart(2, '0') +
+    String(d.getMinutes()).padStart(2, '0');
+  a.download = 'casks-' + stamp + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  msgEl.style.color = 'var(--bottle-deep)';
+  msgEl.textContent = 'Saved as casks-' + stamp + '.json (' + casks.length +
+    ' cask(s)). The date in the name means Windows never adds "(1)" \u2014 the newest file is always the last one.';
+});
+
+// Load master: the file becomes this device's register outright, so casks deleted on the
+// master disappear here too. Merge deliberately cannot do that.
+document.getElementById('replaceInput').addEventListener('change', async (e) => {
+  const file = e.target.files && e.target.files[0];
+  const msgEl = document.getElementById('publishMsg');
+  if (!file) return;
+  try {
+    const data = JSON.parse(await file.text());
+    const incoming = Array.isArray(data) ? data : (data && data.casks);
+    if (!Array.isArray(incoming)) throw new Error('unexpected shape');
+    const valid = incoming.filter(c => c && typeof c.id === 'string' && c.id.trim());
+    if (valid.length === 0) throw new Error('no casks found');
+
+    const removed = casks.filter(c => !valid.some(v => v.id.toLowerCase() === c.id.toLowerCase()));
+    if (removed.length > 0 && !confirm(
+        'Loading this master file will remove ' + removed.length +
+        ' cask(s) held only on this device (' +
+        removed.slice(0, 3).map(c => c.id).join(', ') +
+        (removed.length > 3 ? '…' : '') + '). Continue?')) {
+      e.target.value = '';
+      return;
+    }
+
+    casks = valid;
+    publishedCount = 0;
+    await clearEditMarkers();
+    await saveCasks();
+    renderRegister();
+    renderLabels();
+    msgEl.style.color = 'var(--bottle-deep)';
+    msgEl.textContent = 'Loaded the master file \u2014 ' + valid.length + ' cask(s) now on this device.';
+  } catch (err) {
+    msgEl.style.color = '#8a3b25';
+    msgEl.textContent = 'That file couldn\u2019t be read as a cask register. Pick a casks.json saved by "Save master file".';
+  }
+  e.target.value = '';
+});
+
+// Merge: read a casks.json on this device (also works with no internet).
+document.getElementById('importInput').addEventListener('change', async (e) => {
+  const file = e.target.files && e.target.files[0];
+  const msgEl = document.getElementById('publishMsg');
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    const incoming = Array.isArray(data) ? data : (data && data.casks);
+    if (!Array.isArray(incoming)) throw new Error('unexpected shape');
+    const valid = incoming.filter(c => c && typeof c.id === 'string' && c.id.trim());
+    if (valid.length === 0) throw new Error('no casks found');
+    casks = mergeRegisters(valid, casks);
+    await saveCasks();
+    renderRegister();
+    renderLabels();
+    msgEl.style.color = 'var(--bottle-deep)';
+    msgEl.textContent = 'Imported ' + valid.length + ' cask(s). The register now holds ' + casks.length + '.';
+  } catch (err) {
+    msgEl.style.color = '#8a3b25';
+    msgEl.textContent = 'That file couldn\u2019t be read as a cask register. Use a casks.json produced by "Publish register".';
+  }
+  e.target.value = '';
+});
+
+// ---------- Add/Edit form ----------
+const overlay = document.getElementById('formOverlay');
+const form = document.getElementById('caskForm');
+const FORM_FIELDS = ['f-id','f-spiritType','f-sizeL','f-caskType','f-fillDate','f-fillStrength',
+  'f-fillLitres','f-expectedBottling','f-warehouse','f-location','f-supplier','f-status','f-notes'];
+
+document.getElementById('addCaskBtn').addEventListener('click', () => openForm(null));
+document.getElementById('cancelFormBtn').addEventListener('click', closeForm);
+
+function openForm(cask) {
+  document.getElementById('formTitle').textContent = cask ? 'Edit Cask' : 'Add Cask';
+  document.getElementById('f-originalId').value = cask ? cask.id : '';
+  document.getElementById('f-id').value = cask ? cask.id : '';
+  document.getElementById('f-spiritType').value = cask ? cask.spiritType || '' : 'Single Malt New Make';
+  document.getElementById('f-sizeL').value = cask ? cask.sizeL || '' : '';
+  document.getElementById('f-caskType').value = cask ? cask.caskType || '' : '';
+  document.getElementById('f-fillDate').value = cask ? cask.fillDate || '' : '';
+  document.getElementById('f-fillStrength').value = cask ? cask.fillStrength || '' : '';
+  document.getElementById('f-fillLitres').value = cask ? cask.fillLitres || '' : '';
+  document.getElementById('f-expectedBottling').value = cask ? cask.expectedBottling || '' : '';
+  document.getElementById('f-warehouse').value = cask ? cask.warehouse || '' : '';
+  document.getElementById('f-location').value = cask ? cask.location || '' : '';
+  document.getElementById('f-supplier').value = cask ? cask.supplier || '' : '';
+  document.getElementById('f-status').value = cask ? cask.status || 'Filled - Maturing' : 'Filled - Maturing';
+  document.getElementById('f-notes').value = cask ? cask.notes || '' : '';
+  overlay.classList.add('active');
+}
+
+function closeForm() {
+  overlay.classList.remove('active');
+  clearFormError();
+  FORM_FIELDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('f-originalId').value = '';
+}
+
+function showFormError(msg) {
+  let el = document.getElementById('formError');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'formError';
+    el.style.cssText = 'color:#8a3b25;font-size:0.82rem;font-weight:600;margin-top:10px;';
+    document.getElementById('saveCaskBtn').parentNode.insertBefore(
+      el, document.getElementById('saveCaskBtn'));
+  }
+  el.textContent = msg;
+}
+
+function clearFormError() {
+  const el = document.getElementById('formError');
+  if (el) el.textContent = '';
+}
+
+function editCask(id) {
+  const cask = casks.find(c => c.id === id);
+  if (cask) openForm(cask);
+}
+
+async function deleteCask(id) {
+  if (!confirm(`Delete cask ${id}? This can't be undone.`)) return;
+  casks = casks.filter(c => c.id !== id);
+  markDeleted(id);
+  await saveCasks();
+  renderRegister();
+  renderLabels();
+}
+
+// A click handler, not a form submit: sandboxed frames can block submit events outright,
+// which would stop a cask ever being saved.
+document.getElementById('saveCaskBtn').addEventListener('click', async () => {
+  clearFormError();
+  const originalId = document.getElementById('f-originalId').value;
+  const newId = document.getElementById('f-id').value.trim();
+  if (!newId) {
+    showFormError('Give the cask an ID before saving \u2014 e.g. BAD-2026-0002.');
+    return;
+  }
+
+  const duplicate = casks.find(c => c.id === newId && c.id !== originalId);
+  if (duplicate) {
+    showFormError('Cask ID "' + newId + '" is already in the register. Use a different ID.');
+    return;
+  }
+
+  const caskObj = {
+    id: newId,
+    spiritType: document.getElementById('f-spiritType').value,
+    sizeL: document.getElementById('f-sizeL').value,
+    caskType: document.getElementById('f-caskType').value,
+    fillDate: document.getElementById('f-fillDate').value,
+    fillStrength: document.getElementById('f-fillStrength').value,
+    fillLitres: document.getElementById('f-fillLitres').value,
+    expectedBottling: document.getElementById('f-expectedBottling').value,
+    warehouse: document.getElementById('f-warehouse').value,
+    location: document.getElementById('f-location').value,
+    supplier: document.getElementById('f-supplier').value,
+    status: document.getElementById('f-status').value,
+    notes: document.getElementById('f-notes').value,
+  };
+
+  if (originalId) {
+    casks = casks.map(c => c.id === originalId ? caskObj : c);
+    if (originalId.toLowerCase() !== newId.toLowerCase()) markDeleted(originalId);
+  } else {
+    casks.push(caskObj);
+  }
+  markEdited(newId);
+
+  const saved = await saveCasks();
+  closeForm();
+  renderRegister();
+  renderLabels();
+  // Say plainly where the data lives: saving is per-device until the register is published.
+  const localOnly = casks.length - publishedCount;
+  statusLine.textContent = saved
+    ? (publishedCount > 0
+        ? publishedCount + ' published + ' + localOnly + ' on this device \u2014 tap "Publish register" to share the new ones'
+        : casks.length + ' cask(s) saved on this device only \u2014 tap "Publish register" to share them with your phones')
+    : casks.length + ' cask(s) held for this session \u2014 saving to storage is unavailable here';
+});
+
+// ---------- Camera scan ----------
+// We drive the camera ourselves with getUserMedia and use the QR library only to decode
+// frames. The library's own start() logs a protocol-based warning inside embedded frames
+// (where location.protocol is blob:/about: even on a secure page), so avoiding it keeps
+// the console clean while still giving live scanning.
+let mediaStream = null;
+let scanLoopId = null;
+let scanCanvas = null;
+
+const cameraScanBtn = document.getElementById('cameraScanBtn');
+const scanVideo = document.getElementById('scanVideo');
+const scanVideoWrap = document.getElementById('scanVideoWrap');
+const scanMsg = document.getElementById('scanMsg');
+const photoInput = document.getElementById('photoInput');
+
+function scanning() { return mediaStream !== null; }
+
+// True when the app is running inside a frame. A framed page only gets camera access if
+// the embedding page grants it, which we cannot influence from in here.
+function isEmbedded() {
+  try { return window.self !== window.top; } catch (e) { return true; }
+}
+
+// Does this frame actually have camera permission delegated to it?
+function framePermitsCamera() {
+  try {
+    if (document.featurePolicy && document.featurePolicy.allowsFeature) {
+      return document.featurePolicy.allowsFeature('camera');
+    }
+    if (document.permissionsPolicy && document.permissionsPolicy.allowsFeature) {
+      return document.permissionsPolicy.allowsFeature('camera');
+    }
+  } catch (e) {}
+  return null; // unknown - we'll find out by trying
+}
+
+// The accurate test for live camera support: the API is simply absent when the browser
+// won't allow it. No protocol sniffing, no guessing.
+function cameraSupported() {
+  return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.QrScanner);
+}
+
+function setMsg(text, isError) {
+  scanMsg.textContent = text || '';
+  scanMsg.classList.toggle('error', !!isError);
+}
+
+// If live video can't run here, the photo route is the working option - make it look like it.
+function promotePhotoRoute() {
+  const photoBtn = document.querySelector("label[for='photoInput']");
+  if (photoBtn) {
+    photoBtn.classList.remove('btn-outline');
+    photoBtn.classList.add('btn-primary');
+    photoBtn.style.marginTop = '0';
+    photoBtn.textContent = '\ud83d\udcf8 Take photo of code';
+  }
+  cameraScanBtn.style.display = 'none';
+}
+
+function foundCode(text) {
+  const box = document.getElementById('searchBox');
+  box.value = text;
+  box.dispatchEvent(new Event('input'));
+  setMsg('Found: ' + text, false);
+}
+
+async function startScanner() {
+  if (scanning()) return;
+
+  if (!cameraSupported()) {
+    setMsg('Live video isn\u2019t available here. Tap "Photo of code" to snap the label \u2014 it reads the code the same way.', true);
+    promotePhotoRoute();
+    return;
+  }
+
+  // If the surrounding page definitively withholds camera permission, say so plainly
+  // instead of firing a request that is certain to be refused.
+  if (framePermitsCamera() === false) {
+    setMsg('Live camera is switched off for this embedded view \u2014 that\u2019s set by the page around it, not by your phone. Tap "Photo of code": it opens your camera and reads the same QR codes.', true);
+    promotePhotoRoute();
+    return;
+  }
+
+  setMsg('Starting camera\u2026', false);
+
+  try {
+    mediaStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' } },
+      audio: false
+    });
+    scanVideoWrap.style.display = 'block';
+    scanVideo.srcObject = mediaStream;
+    await scanVideo.play();
+    cameraScanBtn.textContent = '\u25a0 Stop Camera';
+    setMsg('Point the camera at a cask\u2019s QR code\u2026', false);
+    scanLoop();
+  } catch (err) {
+    stopScanner();
+    const name = (err && err.name) || '';
+    let msg;
+    if (name === 'NotAllowedError' || name === 'SecurityError') {
+      msg = isEmbedded()
+        ? 'Live camera is blocked for this embedded view \u2014 the page hosting it controls that, so it can\u2019t be switched on from in here. Tap "Photo of code": it opens your camera and reads the same QR codes. For continuous live scanning, open the app from its own web address.'
+        : 'Camera permission was refused. In Safari, tap the icon at the left of the address bar \u2192 Website Settings \u2192 Camera \u2192 Allow, then reload. "Photo of code" works without it.';
+    } else if (name === 'NotFoundError' || name === 'OverconstrainedError') {
+      msg = 'No camera was found on this device. Use "Photo of code" to read a code from a picture instead.';
+    } else if (name === 'NotReadableError' || name === 'AbortError') {
+      msg = 'The camera is being used by another app. Close it and try again, or use "Photo of code".';
+    } else {
+      msg = 'Couldn\u2019t start the camera here. Tap "Photo of code" \u2014 it reads the same QR codes.';
+    }
+    setMsg(msg, true);
+    promotePhotoRoute();
+  }
+}
+
+function scanLoop() {
+  if (!scanning()) return;
+
+  if (scanVideo.readyState >= 2 && scanVideo.videoWidth) {
+    if (!scanCanvas) scanCanvas = document.createElement('canvas');
+    scanCanvas.width = scanVideo.videoWidth;
+    scanCanvas.height = scanVideo.videoHeight;
+    const ctx = scanCanvas.getContext('2d');
+    ctx.drawImage(scanVideo, 0, 0, scanCanvas.width, scanCanvas.height);
+
+    QrScanner.scanImage(scanCanvas, { returnDetailedScanResult: true })
+      .then(result => {
+        const text = typeof result === 'string' ? result : result.data;
+        if (text) {
+          foundCode(text);
+          stopScanner();
+        }
+      })
+      .catch(() => { /* no code in this frame - keep looking */ });
+  }
+
+  scanLoopId = setTimeout(scanLoop, 350);
+}
+
+function stopScanner() {
+  if (scanLoopId) { clearTimeout(scanLoopId); scanLoopId = null; }
+  if (mediaStream) {
+    mediaStream.getTracks().forEach(t => t.stop());
+    mediaStream = null;
+  }
+  try { scanVideo.pause(); } catch (e) {}
+  scanVideo.srcObject = null;
+  scanVideoWrap.style.display = 'none';
+  cameraScanBtn.textContent = '\ud83d\udcf7 Scan with Camera';
+}
+
+// Enter anywhere in the cask form saves it, matching the old form-submit behaviour.
+document.getElementById('caskForm').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+    e.preventDefault();
+    document.getElementById('saveCaskBtn').click();
+  }
+});
+
+cameraScanBtn.addEventListener('click', () => {
+  if (scanning()) { stopScanner(); } else { startScanner(); }
+});
+
+// Photo route: on iPhone, capture="environment" opens the camera directly. It needs no
+// live-stream permission, so it works even where the live scanner is blocked.
+photoInput.addEventListener('change', async (e) => {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  stopScanner();
+  if (!window.QrScanner) {
+    setMsg('The code reader didn\u2019t load \u2014 check your connection, or scan with your phone\u2019s camera app and paste the result below.', true);
+    return;
+  }
+  setMsg('Reading code\u2026', false);
+  try {
+    const result = await QrScanner.scanImage(file, { returnDetailedScanResult: true });
+    const text = typeof result === 'string' ? result : result.data;
+    foundCode(text);
+  } catch (err) {
+    setMsg('Couldn\u2019t find a code in that photo. Try again with the label filling more of the frame, in good light.', true);
+  }
+  e.target.value = '';
+});
+
+// ---------- Search ----------
+const FIELD_LABELS = {
+  id: 'Cask ID', spiritType: 'Spirit Type', sizeL: 'Cask Size (L)', caskType: 'Cask Type',
+  fillDate: 'Fill Date', fillStrength: 'Fill Strength (% ABV)', fillLitres: 'Fill Litres',
+  expectedBottling: 'Expected Bottling', warehouse: 'Warehouse', location: 'Rack / Bay',
+  supplier: 'Supplier / Source', status: 'Status', notes: 'Notes'
+};
+
+document.getElementById('searchBox').addEventListener('input', (e) => {
+  let q = e.target.value.trim();
+  const resultsEl = document.getElementById('searchResults');
+  const detailEl = document.getElementById('recordDetail');
+  resultsEl.innerHTML = '';
+  detailEl.innerHTML = '';
+  if (!q) return;
+
+  // handle scanned URLs like ...?id=BAD-2026-0001
+  const match = q.match(/[?&]id=([^&]+)/i);
+  if (match) q = decodeURIComponent(match[1]);
+  const ql = q.toLowerCase();
+
+  const matches = casks.filter(c => Object.values(c).some(v => String(v || '').toLowerCase().includes(ql)));
+
+  if (matches.length === 0) {
+    resultsEl.innerHTML = `<div class="empty">No cask matches "${escapeHtml(q)}"</div>`;
+    return;
+  }
+  if (matches.length === 1) {
+    showRecord(matches[0]);
+    return;
+  }
+  resultsEl.innerHTML = matches.slice(0, 12).map(c => `
+    <div class="result-item" onclick='window.__showRecordById("${escapeAttr(c.id)}")'>
+      <div><span class="mono" style="font-weight:700;color:var(--rust-deep)">${escapeHtml(c.id)}</span><br>
+      <span style="font-size:0.8rem;color:#5c5546;">${escapeHtml(c.spiritType||'')}</span></div>
+      <span style="font-size:1.2rem;">→</span>
+    </div>
+  `).join('');
+});
+
+window.__showRecordById = function(id) {
+  const c = casks.find(c => c.id === id);
+  if (c) showRecord(c);
+};
+
+function showRecord(c) {
+  document.getElementById('searchResults').innerHTML = '';
+  const detailEl = document.getElementById('recordDetail');
+  const rows = Object.keys(FIELD_LABELS).map(key => `
+    <tr><td class="f">${FIELD_LABELS[key]}</td><td>${escapeHtml(c[key] || '—')}</td></tr>
+  `).join('');
+  detailEl.innerHTML = `
+    <div class="record-card">
+      <div class="head">
+        <div class="badge">${escapeHtml((c.id||'').slice(-6))}</div>
+        <div>
+          <div class="cask-id" style="font-size:1.1rem;">${escapeHtml(c.id)}</div>
+          <span class="status-pill status-${(c.status||'').replace(/[^A-Za-z]/g,'').replace('FilledMaturing','Filled').replace('ReadyforBottling','Filled') || 'Filled'}">${escapeHtml(c.status || 'Filled')}</span>
+        </div>
+      </div>
+      <table class="record-table">${rows}</table>
+    </div>
+  `;
+}
+
+// ---------- Labels ----------
+function renderLabels() {
+  const area = document.getElementById('printArea');
+  if (casks.length === 0) {
+    area.innerHTML = `<div class="empty"><div class="display">No casks yet</div>Add casks in the Register tab to generate labels.</div>`;
+    return;
+  }
+  area.innerHTML = casks.map((c, idx) => `
+    <div class="label-card">
+      <div class="qr-box" id="qr-${idx}"></div>
+      <div class="label-info">
+        <div class="label-id">${escapeHtml(c.id)}</div>
+        <div class="label-meta">${escapeHtml(c.spiritType || '')}${c.caskType ? ' — ' + escapeHtml(c.caskType) : ''}</div>
+        <div class="label-meta">${escapeHtml(c.warehouse || '')} ${c.location ? '· ' + escapeHtml(c.location) : ''}</div>
+      </div>
+      <div class="label-actions">
+        <button class="btn btn-outline btn-sm" onclick="downloadLabel(${idx})">Download</button>
+      </div>
+    </div>
+  `).join('');
+
+  casks.forEach((c, idx) => {
+    const el = document.getElementById(`qr-${idx}`);
+    if (el) {
+      el.innerHTML = '';
+      if (typeof QRCode === 'undefined') {
+        el.innerHTML = '<div style="width:96px;height:96px;display:flex;align-items:center;'
+          + 'justify-content:center;text-align:center;font-size:0.62rem;color:#8a3b25;">'
+          + 'QR library offline</div>';
+      } else {
+        new QRCode(el, { text: qrPayload(c.id), width: 96, height: 96, colorDark: '#211a14', colorLight: '#ffffff' });
+      }
+    }
+  });
+}
+
+function downloadLabel(idx) {
+  const c = casks[idx];
+  const qrEl = document.getElementById(`qr-${idx}`);
+  const img = qrEl ? qrEl.querySelector('img, canvas') : null;
+  if (!img) return;
+  const link = document.createElement('a');
+  link.download = `${c.id}.png`;
+  if (img.tagName === 'CANVAS') {
+    link.href = img.toDataURL('image/png');
+  } else {
+    link.href = img.src;
+  }
+  link.click();
+}
+
+document.getElementById('printBtn').addEventListener('click', () => window.print());
+
+document.getElementById('saveBaseUrlBtn').addEventListener('click', async () => {
+  const raw = document.getElementById('baseUrlInput').value.trim();
+  const msgEl = document.getElementById('baseUrlMsg');
+
+  if (raw && !/^https?:\/\//i.test(raw)) {
+    msgEl.textContent = 'Include the full address, starting with https://';
+    msgEl.style.color = '#8a3b25';
+    return;
+  }
+
+  baseUrl = raw;
+  if (hasStorage()) {
+    try { await store.set(BASEURL_KEY, baseUrl); } catch (e) {}
+  }
+  renderLabels();
+  msgEl.style.color = 'var(--bottle-deep)';
+  msgEl.textContent = baseUrl
+    ? 'Labels now encode links — scanning one with any phone camera opens that cask.'
+    : 'Labels now encode the bare cask ID.';
+});
+
+// ---------- Helpers ----------
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+}
+function escapeAttr(str) {
+  return String(str).replace(/'/g, "\\'");
+}
+
+// A scanned link (…?id=BAD-2026-0001) opens that cask's record immediately on load.
+function pendingDeepLinkId() {
+  try {
+    const params = new URLSearchParams(window.location.search || '');
+    let id = params.get('id');
+    if (!id && window.location.hash) {
+      const h = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+      id = h.get('id');
+    }
+    return id ? id.trim() : '';
+  } catch (e) { return ''; }
+}
+
+function openDeepLink() {
+  const id = pendingDeepLinkId();
+  if (!id) return false;
+  const cask = casks.find(c => c.id.toLowerCase() === id.toLowerCase());
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelector("nav button[data-view='search']").classList.add('active');
+  document.getElementById('view-search').classList.add('active');
+  if (cask) {
+    showRecord(cask);
+    setMsg('Opened from a scanned label.', false);
+  } else {
+    document.getElementById('searchBox').value = id;
+    document.getElementById('searchResults').innerHTML =
+      '<div class="empty">No cask with ID ' + escapeHtml(id) + ' is in the register yet.</div>';
+  }
+  return true;
+}
+
+(async function boot() {
+  try {
+    const u = await store.get(REGURL_KEY);
+    if (u) registerUrl = u;
+    const ro = await store.get(RO_KEY);
+    readOnly = !!ro;
+  } catch (e) {}
+  const urlInput = document.getElementById('regUrlInput');
+  if (urlInput) urlInput.value = registerUrl || '';
+  const roBox = document.getElementById('readOnlyMode');
+  if (roBox) roBox.checked = readOnly;
+
+  await loadCasks();
+  applyReadOnly();
+  await restoreMasterHandle();
+  if (registerUrl && lastSync) {
+    regMsg('Last updated ' + lastSync + '.', 'ok');
+  }
+  if (hasStorage()) {
+    try {
+      const v = await store.get(BASEURL_KEY);
+      if (v) baseUrl = v;
+    } catch (e) { /* not set yet */ }
+  }
+  const baseInput = document.getElementById('baseUrlInput');
+  if (baseInput) baseInput.value = baseUrl;
+  renderLabels();
+  // If we arrived from a scanned link, show that cask instead of auto-opening the camera.
+  openDeepLink();
+
+  // A link that only changes the #fragment doesn't reload the page, so handle that too.
+  window.addEventListener('hashchange', openDeepLink);
+  window.addEventListener('popstate', openDeepLink);
+})();
+</script>
+
+</body>
+</html>
